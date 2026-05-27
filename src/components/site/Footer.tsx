@@ -22,15 +22,15 @@ export function Footer() {
         <div>
           <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Company</h4>
           <ul className="mt-4 space-y-2.5 text-foreground/80">
-            <li><Link to="/about" className="hover:text-ink">About</Link></li>
-            <li><Link to="/contact" className="hover:text-ink">Contact</Link></li>
+            <li><a href="/about" className="hover:text-ink">About</a></li>
+            <li><a href="/contact" className="hover:text-ink">Contact</a></li>
           </ul>
         </div>
         <div>
           <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Legal</h4>
           <ul className="mt-4 space-y-2.5 text-foreground/80">
-            <li><Link to="/privacy" className="hover:text-ink">Privacy</Link></li>
-            <li><Link to="/terms" className="hover:text-ink">Terms</Link></li>
+            <li><a href="/privacy" className="hover:text-ink">Privacy</a></li>
+            <li><a href="/terms" className="hover:text-ink">Terms</a></li>
           </ul>
         </div>
       </div>

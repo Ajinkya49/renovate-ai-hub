@@ -20,6 +20,7 @@ export function Header() {
           {user ? (
             <>
               <Button asChild variant="ghost" size="sm"><Link to="/dashboard">Dashboard</Link></Button>
+              <Button asChild variant="ghost" size="sm"><Link to="/marketplace">Marketplace</Link></Button>
               <Button onClick={() => signOut()} size="sm" variant="outline">Sign out</Button>
             </>
           ) : (
