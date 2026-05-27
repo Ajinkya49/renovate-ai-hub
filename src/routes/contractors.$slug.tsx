@@ -90,7 +90,7 @@ function ContractorProfile() {
           <section className="mt-14">
             <h2 className="font-display text-2xl text-ink">Reviews</h2>
             <div className="mt-4 space-y-4">
-              {reviews.map((r) => (
+              {reviews.map((r: { id: string; rating: number; body: string | null; created_at: string }) => (
                 <div key={r.id} className="rounded-xl border border-border bg-surface-elevated p-5">
                   <div className="inline-flex items-center gap-1 text-copper text-xs">
                     {Array.from({ length: r.rating }).map((_, i) => (

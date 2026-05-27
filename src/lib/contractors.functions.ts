@@ -143,16 +143,34 @@ export const getContractorBySlug = createServerFn({ method: "POST" })
  * specialties + service zip codes, and which the contractor has not yet
  * claimed. Uses admin client (cross-user query).
  */
+type MarketplaceProject = {
+  id: string;
+  title: string;
+  roomType: string;
+  zipCode: string | null;
+  createdAt: string;
+  ownerId: string;
+  estimate: {
+    id: string;
+    low_cents: number;
+    expected_cents: number;
+    high_cents: number;
+    confidence: number | null;
+    timeline_weeks_min: number | null;
+    timeline_weeks_max: number | null;
+  } | null;
+};
+
 export const listMarketplaceProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<{ contractor: { id: string } | null; projects: MarketplaceProject[] }> => {
     const { userId } = context;
     const { data: contractor } = await supabaseAdmin
       .from("contractors")
       .select("id, service_zip_codes, specialties")
       .eq("user_id", userId)
       .maybeSingle();
-    if (!contractor) return { contractor: null, projects: [] as Array<Record<string, unknown>> };
+    if (!contractor) return { contractor: null, projects: [] };
 
     const zips = contractor.service_zip_codes ?? [];
     // Get already-claimed project ids for this contractor.
@@ -176,18 +194,28 @@ export const listMarketplaceProjects = createServerFn({ method: "GET" })
     const { data: projects, error } = await query;
     if (error) throw new Error(error.message);
 
-    const filtered = (projects ?? [])
+    const filtered: MarketplaceProject[] = (projects ?? [])
       .filter((p) => !claimedIds.has(p.id))
       .map((p) => {
         const est = Array.isArray(p.estimates) ? p.estimates[0] : p.estimates;
         return {
           id: p.id,
           title: p.title,
-          roomType: p.room_type,
+          roomType: p.room_type as string,
           zipCode: p.zip_code,
           createdAt: p.created_at,
           ownerId: p.owner_id,
-          estimate: est ?? null,
+          estimate: est
+            ? {
+                id: est.id,
+                low_cents: Number(est.low_cents),
+                expected_cents: Number(est.expected_cents),
+                high_cents: Number(est.high_cents),
+                confidence: est.confidence != null ? Number(est.confidence) : null,
+                timeline_weeks_min: est.timeline_weeks_min,
+                timeline_weeks_max: est.timeline_weeks_max,
+              }
+            : null,
         };
       });
     return { contractor: { id: contractor.id }, projects: filtered };

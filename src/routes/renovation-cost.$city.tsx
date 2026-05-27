@@ -125,7 +125,7 @@ function CityPage() {
         </p>
 
         <div className="mt-10 grid gap-3">
-          {rooms.map(({ key, label, est }) => (
+          {rooms.map(({ key, label, est }: { key: string; label: string; est: ReturnType<typeof computeEstimate> }) => (
             <div key={key} className="rounded-2xl border border-border bg-surface-elevated p-5 flex items-center justify-between gap-4">
               <div>
                 <div className="font-medium text-ink">{label}</div>
