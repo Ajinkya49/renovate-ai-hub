@@ -17,8 +17,14 @@ import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ContractorsRouteImport } from './routes/contractors'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RenovationCostCityRouteImport } from './routes/renovation-cost.$city'
+import { Route as ContractorsSlugRouteImport } from './routes/contractors.$slug'
 import { Route as AuthenticatedNewRouteImport } from './routes/_authenticated/new'
+import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedContractorOnboardingRouteImport } from './routes/_authenticated/contractor-onboarding'
+import { Route as AuthenticatedContractorLeadsRouteImport } from './routes/_authenticated/contractor-leads'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects.$projectId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -60,14 +66,47 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RenovationCostCityRoute = RenovationCostCityRouteImport.update({
+  id: '/renovation-cost/$city',
+  path: '/renovation-cost/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContractorsSlugRoute = ContractorsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ContractorsRoute,
+} as any)
 const AuthenticatedNewRoute = AuthenticatedNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMarketplaceRoute =
+  AuthenticatedMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedContractorOnboardingRoute =
+  AuthenticatedContractorOnboardingRouteImport.update({
+    id: '/contractor-onboarding',
+    path: '/contractor-onboarding',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedContractorLeadsRoute =
+  AuthenticatedContractorLeadsRouteImport.update({
+    id: '/contractor-leads',
+    path: '/contractor-leads',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedProjectsProjectIdRoute =
@@ -79,40 +118,58 @@ const AuthenticatedProjectsProjectIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/contractors': typeof ContractorsRoute
+  '/contractors': typeof ContractorsRouteWithChildren
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/contractor-leads': typeof AuthenticatedContractorLeadsRoute
+  '/contractor-onboarding': typeof AuthenticatedContractorOnboardingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/new': typeof AuthenticatedNewRoute
+  '/contractors/$slug': typeof ContractorsSlugRoute
+  '/renovation-cost/$city': typeof RenovationCostCityRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/contractors': typeof ContractorsRoute
+  '/contractors': typeof ContractorsRouteWithChildren
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/contractor-leads': typeof AuthenticatedContractorLeadsRoute
+  '/contractor-onboarding': typeof AuthenticatedContractorOnboardingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/new': typeof AuthenticatedNewRoute
+  '/contractors/$slug': typeof ContractorsSlugRoute
+  '/renovation-cost/$city': typeof RenovationCostCityRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/contractors': typeof ContractorsRoute
+  '/contractors': typeof ContractorsRouteWithChildren
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/contractor-leads': typeof AuthenticatedContractorLeadsRoute
+  '/_authenticated/contractor-onboarding': typeof AuthenticatedContractorOnboardingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/new': typeof AuthenticatedNewRoute
+  '/contractors/$slug': typeof ContractorsSlugRoute
+  '/renovation-cost/$city': typeof RenovationCostCityRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
 }
 export interface FileRouteTypes {
@@ -125,8 +182,14 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/sitemap.xml'
+    | '/admin'
+    | '/contractor-leads'
+    | '/contractor-onboarding'
     | '/dashboard'
+    | '/marketplace'
     | '/new'
+    | '/contractors/$slug'
+    | '/renovation-cost/$city'
     | '/projects/$projectId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -137,8 +200,14 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/sitemap.xml'
+    | '/admin'
+    | '/contractor-leads'
+    | '/contractor-onboarding'
     | '/dashboard'
+    | '/marketplace'
     | '/new'
+    | '/contractors/$slug'
+    | '/renovation-cost/$city'
     | '/projects/$projectId'
   id:
     | '__root__'
@@ -150,20 +219,27 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/sitemap.xml'
+    | '/_authenticated/admin'
+    | '/_authenticated/contractor-leads'
+    | '/_authenticated/contractor-onboarding'
     | '/_authenticated/dashboard'
+    | '/_authenticated/marketplace'
     | '/_authenticated/new'
+    | '/contractors/$slug'
+    | '/renovation-cost/$city'
     | '/_authenticated/projects/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  ContractorsRoute: typeof ContractorsRoute
+  ContractorsRoute: typeof ContractorsRouteWithChildren
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  RenovationCostCityRoute: typeof RenovationCostCityRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -224,6 +300,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/renovation-cost/$city': {
+      id: '/renovation-cost/$city'
+      path: '/renovation-cost/$city'
+      fullPath: '/renovation-cost/$city'
+      preLoaderRoute: typeof RenovationCostCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contractors/$slug': {
+      id: '/contractors/$slug'
+      path: '/$slug'
+      fullPath: '/contractors/$slug'
+      preLoaderRoute: typeof ContractorsSlugRouteImport
+      parentRoute: typeof ContractorsRoute
+    }
     '/_authenticated/new': {
       id: '/_authenticated/new'
       path: '/new'
@@ -231,11 +321,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/marketplace': {
+      id: '/_authenticated/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contractor-onboarding': {
+      id: '/_authenticated/contractor-onboarding'
+      path: '/contractor-onboarding'
+      fullPath: '/contractor-onboarding'
+      preLoaderRoute: typeof AuthenticatedContractorOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/contractor-leads': {
+      id: '/_authenticated/contractor-leads'
+      path: '/contractor-leads'
+      fullPath: '/contractor-leads'
+      preLoaderRoute: typeof AuthenticatedContractorLeadsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/projects/$projectId': {
@@ -249,13 +367,22 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedContractorLeadsRoute: typeof AuthenticatedContractorLeadsRoute
+  AuthenticatedContractorOnboardingRoute: typeof AuthenticatedContractorOnboardingRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNewRoute: typeof AuthenticatedNewRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedContractorLeadsRoute: AuthenticatedContractorLeadsRoute,
+  AuthenticatedContractorOnboardingRoute:
+    AuthenticatedContractorOnboardingRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNewRoute: AuthenticatedNewRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
 }
@@ -264,16 +391,39 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface ContractorsRouteChildren {
+  ContractorsSlugRoute: typeof ContractorsSlugRoute
+}
+
+const ContractorsRouteChildren: ContractorsRouteChildren = {
+  ContractorsSlugRoute: ContractorsSlugRoute,
+}
+
+const ContractorsRouteWithChildren = ContractorsRoute._addFileChildren(
+  ContractorsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  ContractorsRoute: ContractorsRoute,
+  ContractorsRoute: ContractorsRouteWithChildren,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  RenovationCostCityRoute: RenovationCostCityRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
