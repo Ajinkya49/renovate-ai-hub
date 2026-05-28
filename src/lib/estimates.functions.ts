@@ -166,13 +166,14 @@ export const generateEstimate = createServerFn({ method: "POST" })
       ],
     });
     const latencyMs = Date.now() - t0;
+    const normalizedScope = normalizeScope(output.scope);
 
     // 5. Persist AI analysis.
     await supabase.from("ai_analysis").insert({
       project_id: project.id,
       model: "google/gemini-2.5-flash",
       detected_objects: output.detectedObjects,
-      scope: output.scope,
+      scope: normalizedScope,
       complexity: output.complexity,
       confidence: 0.75,
       latency_ms: latencyMs,
@@ -187,7 +188,7 @@ export const generateEstimate = createServerFn({ method: "POST" })
       zipCode: project.zip_code,
       region: project.region,
       complexity: output.complexity as Complexity,
-      scope: output.scope as ScopeItem[],
+      scope: normalizedScope as ScopeItem[],
       squareFeet: output.estimatedSquareFeet,
     });
 
