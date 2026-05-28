@@ -34,23 +34,52 @@ const SCOPE_CATEGORIES = [
   "labor_general",
 ] as const;
 
+const UNITS = ["sqft", "lf", "ea", "hr", "lot"] as const;
+
+// Lenient schema — Gemini often returns slightly off-spec values (extra
+// categories, string numbers, missing fields). We accept loose input and
+// normalize after parsing rather than failing the whole generation.
 const VisionSchema = z.object({
-  detectedObjects: z.array(z.string()).max(40),
-  estimatedSquareFeet: z.number().min(20).max(5000).optional(),
-  conditionNotes: z.string().max(800),
-  complexity: z.enum(["low", "medium", "high"]),
+  detectedObjects: z.array(z.string()).max(80).optional().default([]),
+  estimatedSquareFeet: z.coerce.number().min(1).max(20000).optional(),
+  conditionNotes: z.string().max(2000).optional().default(""),
+  complexity: z.enum(["low", "medium", "high"]).optional().default("medium"),
   scope: z
     .array(
       z.object({
-        category: z.enum(SCOPE_CATEGORIES),
-        description: z.string().min(2).max(200),
-        quantity: z.number().min(0.1).max(10000),
-        unit: z.enum(["sqft", "lf", "ea", "hr", "lot"]),
+        category: z.string(),
+        description: z.string().min(1).max(400),
+        quantity: z.coerce.number().min(0).max(100000).optional().default(1),
+        unit: z.string().optional().default("ea"),
       }),
     )
-    .min(1)
-    .max(20),
+    .optional()
+    .default([]),
 });
+
+function normalizeScope(raw: z.infer<typeof VisionSchema>["scope"]) {
+  const allowedCats = new Set<string>(SCOPE_CATEGORIES);
+  const allowedUnits = new Set<string>(UNITS);
+  const normalized = raw.map((item) => {
+    const cat = (item.category || "").toLowerCase().replace(/\s+/g, "_");
+    const unit = (item.unit || "ea").toLowerCase();
+    return {
+      category: (allowedCats.has(cat) ? cat : "labor_general") as (typeof SCOPE_CATEGORIES)[number],
+      description: item.description.slice(0, 200),
+      quantity: Math.max(0.1, Math.min(10000, item.quantity || 1)),
+      unit: (allowedUnits.has(unit) ? unit : "ea") as (typeof UNITS)[number],
+    };
+  });
+  if (normalized.length === 0) {
+    normalized.push({
+      category: "labor_general",
+      description: "General renovation labor",
+      quantity: 40,
+      unit: "hr",
+    });
+  }
+  return normalized.slice(0, 20);
+}
 
 const CreateEstimateInput = z.object({
   projectId: z.string().uuid(),
@@ -137,13 +166,14 @@ export const generateEstimate = createServerFn({ method: "POST" })
       ],
     });
     const latencyMs = Date.now() - t0;
+    const normalizedScope = normalizeScope(output.scope);
 
     // 5. Persist AI analysis.
     await supabase.from("ai_analysis").insert({
       project_id: project.id,
       model: "google/gemini-2.5-flash",
       detected_objects: output.detectedObjects,
-      scope: output.scope,
+      scope: normalizedScope,
       complexity: output.complexity,
       confidence: 0.75,
       latency_ms: latencyMs,
@@ -158,7 +188,7 @@ export const generateEstimate = createServerFn({ method: "POST" })
       zipCode: project.zip_code,
       region: project.region,
       complexity: output.complexity as Complexity,
-      scope: output.scope as ScopeItem[],
+      scope: normalizedScope as ScopeItem[],
       squareFeet: output.estimatedSquareFeet,
     });
 
