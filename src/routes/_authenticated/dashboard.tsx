@@ -59,9 +59,23 @@ function Dashboard() {
             </div>
             <h3 className="mt-5 text-lg font-semibold text-ink">Upload room photos</h3>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              Get an AI-powered estimate in about 90 seconds.
+              AI-powered scope from your photos in about 90 seconds.
             </p>
           </Link>
+
+          <Link
+            to="/quick"
+            className="rounded-2xl border border-dashed border-border bg-surface-elevated p-7 hover:border-ink/40 hover:shadow-soft transition-all group"
+          >
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-ink/5 text-ink group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+              <Zap className="h-5 w-5" />
+            </div>
+            <h3 className="mt-5 text-lg font-semibold text-ink">Quick estimate</h3>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Instant price range from room type, size, and finish level — no photos, no AI.
+            </p>
+          </Link>
+
 
           <div className="md:col-span-2 rounded-2xl border border-border bg-surface-elevated p-7 shadow-soft">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Recent projects</h3>
