@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listMyProjects } from "@/lib/estimates.functions";
-import { Plus, Camera, ArrowRight } from "lucide-react";
+import { Plus, Camera, ArrowRight, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
