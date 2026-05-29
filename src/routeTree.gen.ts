@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RenovationCostCityRouteImport } from './routes/renovation-cost.$city'
 import { Route as ContractorsSlugRouteImport } from './routes/contractors.$slug'
+import { Route as AuthenticatedQuickRouteImport } from './routes/_authenticated/quick'
 import { Route as AuthenticatedNewRouteImport } from './routes/_authenticated/new'
 import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -76,6 +77,11 @@ const ContractorsSlugRoute = ContractorsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ContractorsRoute,
 } as any)
+const AuthenticatedQuickRoute = AuthenticatedQuickRouteImport.update({
+  id: '/quick',
+  path: '/quick',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedNewRoute = AuthenticatedNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/new': typeof AuthenticatedNewRoute
+  '/quick': typeof AuthenticatedQuickRoute
   '/contractors/$slug': typeof ContractorsSlugRoute
   '/renovation-cost/$city': typeof RenovationCostCityRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/marketplace': typeof AuthenticatedMarketplaceRoute
   '/new': typeof AuthenticatedNewRoute
+  '/quick': typeof AuthenticatedQuickRoute
   '/contractors/$slug': typeof ContractorsSlugRoute
   '/renovation-cost/$city': typeof RenovationCostCityRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
   '/_authenticated/new': typeof AuthenticatedNewRoute
+  '/_authenticated/quick': typeof AuthenticatedQuickRoute
   '/contractors/$slug': typeof ContractorsSlugRoute
   '/renovation-cost/$city': typeof RenovationCostCityRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/marketplace'
     | '/new'
+    | '/quick'
     | '/contractors/$slug'
     | '/renovation-cost/$city'
     | '/projects/$projectId'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/marketplace'
     | '/new'
+    | '/quick'
     | '/contractors/$slug'
     | '/renovation-cost/$city'
     | '/projects/$projectId'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/marketplace'
     | '/_authenticated/new'
+    | '/_authenticated/quick'
     | '/contractors/$slug'
     | '/renovation-cost/$city'
     | '/_authenticated/projects/$projectId'
@@ -314,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContractorsSlugRouteImport
       parentRoute: typeof ContractorsRoute
     }
+    '/_authenticated/quick': {
+      id: '/_authenticated/quick'
+      path: '/quick'
+      fullPath: '/quick'
+      preLoaderRoute: typeof AuthenticatedQuickRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/new': {
       id: '/_authenticated/new'
       path: '/new'
@@ -373,6 +392,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
   AuthenticatedNewRoute: typeof AuthenticatedNewRoute
+  AuthenticatedQuickRoute: typeof AuthenticatedQuickRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
 }
 
@@ -384,6 +404,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
   AuthenticatedNewRoute: AuthenticatedNewRoute,
+  AuthenticatedQuickRoute: AuthenticatedQuickRoute,
   AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
 }
 
@@ -417,13 +438,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
