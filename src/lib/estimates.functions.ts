@@ -260,6 +260,93 @@ export const createProject = createServerFn({ method: "POST" })
     return { projectId: project.id };
   });
 
+const QuickEstimateInput = z.object({
+  title: z.string().min(1).max(120),
+  roomType: z.enum(ROOM_TYPES),
+  zipCode: z.string().regex(/^\d{5}$/).optional().or(z.literal("")),
+  squareFeet: z.coerce.number().min(20).max(5000),
+  finishLevel: z.enum(["good", "better", "best"]),
+  notes: z.string().max(1000).optional(),
+});
+
+/**
+ * No-AI deterministic estimate. Builds scope from a template, runs it
+ * through computeEstimate(), persists project + estimate + line items.
+ */
+export const quickEstimate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => QuickEstimateInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { buildQuickScope, finishToComplexity } = await import("@/lib/quick-scope");
+
+    const { data: project, error: pErr } = await supabase
+      .from("projects")
+      .insert({
+        owner_id: userId,
+        title: data.title,
+        room_type: data.roomType,
+        zip_code: data.zipCode || null,
+        notes: data.notes || null,
+      })
+      .select("id")
+      .single();
+    if (pErr || !project) throw new Error(pErr?.message || "Failed to create project");
+
+    const scope = buildQuickScope(data.roomType as RoomType, data.squareFeet, data.finishLevel);
+    const complexity = finishToComplexity(data.finishLevel);
+    const result = computeEstimate({
+      roomType: data.roomType as RoomType,
+      zipCode: data.zipCode || null,
+      complexity,
+      scope,
+      squareFeet: data.squareFeet,
+    });
+
+    const { data: est, error: estErr } = await supabaseAdmin
+      .from("estimates")
+      .insert({
+        project_id: project.id,
+        low_cents: result.lowCents,
+        expected_cents: result.expectedCents,
+        high_cents: result.highCents,
+        timeline_weeks_min: result.timelineWeeksMin,
+        timeline_weeks_max: result.timelineWeeksMax,
+        confidence: result.confidence,
+        assumptions: [
+          `Quick estimate — no photo analysis.`,
+          `Finish level: ${data.finishLevel}.`,
+          `Approx. ${data.squareFeet} sqft.`,
+          ...result.assumptions,
+        ],
+        region: result.region,
+        pricing_version: result.pricingVersion,
+      })
+      .select("id")
+      .single();
+    if (estErr || !est) throw new Error(estErr?.message || "Failed to save estimate");
+
+    await supabaseAdmin.from("estimate_line_items").insert(
+      result.lineItems.map((li, i) => ({
+        estimate_id: est.id,
+        category: li.category,
+        description: li.description,
+        quantity: li.quantity,
+        unit: li.unit,
+        unit_cost_cents: li.unitCostCents,
+        subtotal_cents: li.subtotalCents,
+        sort_order: i,
+      })),
+    );
+
+    await supabaseAdmin
+      .from("projects")
+      .update({ status: "estimated" })
+      .eq("id", project.id);
+
+    return { projectId: project.id, estimateId: est.id };
+  });
+
 const GetEstimateInput = z.object({ projectId: z.string().uuid() });
 
 export const getProjectWithEstimate = createServerFn({ method: "POST" })
