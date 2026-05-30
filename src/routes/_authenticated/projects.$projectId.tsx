@@ -205,7 +205,7 @@ function ProjectDetail() {
                           )}
                           {m.contractor && m.contractor.specialties.length > 0 && (
                             <div className="mt-3 flex flex-wrap gap-1">
-                              {m.contractor.specialties.slice(0, 4).map((s) => (
+                              {m.contractor.specialties.slice(0, 4).map((s: string) => (
                                 <span
                                   key={s}
                                   className="px-2 py-0.5 rounded-full bg-ink/5 text-[11px] capitalize text-ink"
