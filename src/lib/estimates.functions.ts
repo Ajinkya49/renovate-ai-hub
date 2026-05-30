@@ -418,3 +418,51 @@ export const listMyProjects = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+const ProjectMatchesInput = z.object({ projectId: z.string().uuid() });
+
+export const listProjectMatches = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => ProjectMatchesInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    // Verify ownership.
+    const { data: project } = await supabaseAdmin
+      .from("projects")
+      .select("id, owner_id")
+      .eq("id", data.projectId)
+      .maybeSingle();
+    if (!project || project.owner_id !== userId) throw new Error("Not found");
+
+    const { data: leads } = await supabaseAdmin
+      .from("contractor_leads")
+      .select(
+        "id, status, score, created_at, contractor_id, contractors(id, slug, business_name, bio, specialties, rating, review_count, insured, years_experience, logo_url)",
+      )
+      .eq("project_id", data.projectId)
+      .order("created_at", { ascending: false });
+
+    return (leads ?? []).map((l) => {
+      const c = Array.isArray(l.contractors) ? l.contractors[0] : l.contractors;
+      return {
+        leadId: l.id,
+        status: l.status,
+        score: l.score != null ? Number(l.score) : null,
+        createdAt: l.created_at,
+        contractor: c
+          ? {
+              id: c.id,
+              slug: c.slug,
+              businessName: c.business_name,
+              bio: c.bio,
+              specialties: c.specialties ?? [],
+              rating: Number(c.rating ?? 0),
+              reviewCount: c.review_count ?? 0,
+              insured: !!c.insured,
+              yearsExperience: c.years_experience,
+              logoUrl: c.logo_url,
+            }
+          : null,
+      };
+    });
+  });
