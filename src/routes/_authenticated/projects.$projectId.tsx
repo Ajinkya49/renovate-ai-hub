@@ -61,7 +61,7 @@ function ProjectDetail() {
                 </div>
                 <h1 className="mt-2 font-display text-4xl text-ink">{data.project.title}</h1>
               </div>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <Button variant="outline" size="sm" onClick={() => { refetch(); refetchMatches(); }}>
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
               </Button>
             </div>
