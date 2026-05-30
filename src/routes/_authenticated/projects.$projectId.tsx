@@ -5,9 +5,9 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getProjectWithEstimate } from "@/lib/estimates.functions";
+import { getProjectWithEstimate, listProjectMatches } from "@/lib/estimates.functions";
 import { formatUSD } from "@/lib/pricing";
-import { ArrowLeft, CheckCircle2, Clock, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Sparkles, RefreshCw, Shield, Star, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId")({
   head: () => ({
