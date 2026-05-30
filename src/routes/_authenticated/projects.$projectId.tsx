@@ -5,9 +5,9 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getProjectWithEstimate } from "@/lib/estimates.functions";
+import { getProjectWithEstimate, listProjectMatches } from "@/lib/estimates.functions";
 import { formatUSD } from "@/lib/pricing";
-import { ArrowLeft, CheckCircle2, Clock, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Sparkles, RefreshCw, Shield, Star, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId")({
   head: () => ({
@@ -23,9 +23,14 @@ function ProjectDetail() {
   const { projectId } = Route.useParams();
   const navigate = useNavigate();
   const fetchProject = useServerFn(getProjectWithEstimate);
+  const fetchMatches = useServerFn(listProjectMatches);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => fetchProject({ data: { projectId } }),
+  });
+  const { data: matches, refetch: refetchMatches } = useQuery({
+    queryKey: ["project-matches", projectId],
+    queryFn: () => fetchMatches({ data: { projectId } }),
   });
 
   return (
@@ -56,7 +61,7 @@ function ProjectDetail() {
                 </div>
                 <h1 className="mt-2 font-display text-4xl text-ink">{data.project.title}</h1>
               </div>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <Button variant="outline" size="sm" onClick={() => { refetch(); refetchMatches(); }}>
                 <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
               </Button>
             </div>
@@ -138,6 +143,91 @@ function ProjectDetail() {
                       </li>
                     ))}
                   </ul>
+                </section>
+
+                {/* Contractor matches */}
+                <section className="mt-12">
+                  <div className="flex items-center justify-between gap-4">
+                    <h2 className="font-display text-2xl text-ink inline-flex items-center gap-2">
+                      <Users className="h-5 w-5" /> Interested contractors
+                    </h2>
+                    {matches && matches.length > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {matches.length} match{matches.length === 1 ? "" : "es"}
+                      </span>
+                    )}
+                  </div>
+
+                  {!matches || matches.length === 0 ? (
+                    <div className="mt-4 rounded-2xl border border-dashed border-border bg-surface-elevated p-8 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        No contractors have claimed this project yet. We'll notify you the moment one matches.
+                      </p>
+                      <Button asChild variant="outline" size="sm" className="mt-4">
+                        <Link to="/contractors">Browse contractors</Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <ul className="mt-4 grid sm:grid-cols-2 gap-3">
+                      {matches.map((m) => (
+                        <li
+                          key={m.leadId}
+                          className="rounded-2xl border border-border bg-surface-elevated p-5 hover:border-ink/40 hover:shadow-soft transition-all"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-ink truncate">
+                                {m.contractor?.businessName ?? "Contractor"}
+                              </div>
+                              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                                {m.contractor?.insured && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Shield className="h-3 w-3" /> Insured
+                                  </span>
+                                )}
+                                {m.contractor?.yearsExperience != null && (
+                                  <span>{m.contractor.yearsExperience}+ yrs</span>
+                                )}
+                                {m.contractor && m.contractor.rating > 0 && (
+                                  <span className="inline-flex items-center gap-0.5">
+                                    <Star className="h-3 w-3 fill-current text-copper" />
+                                    {m.contractor.rating.toFixed(1)} ({m.contractor.reviewCount})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-muted text-[10px] uppercase tracking-wider text-ink capitalize">
+                              {m.status}
+                            </span>
+                          </div>
+                          {m.contractor?.bio && (
+                            <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{m.contractor.bio}</p>
+                          )}
+                          {m.contractor && m.contractor.specialties.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-1">
+                              {m.contractor.specialties.slice(0, 4).map((s: string) => (
+                                <span
+                                  key={s}
+                                  className="px-2 py-0.5 rounded-full bg-ink/5 text-[11px] capitalize text-ink"
+                                >
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {m.contractor && (
+                            <div className="mt-4">
+                              <Button asChild size="sm" variant="outline" className="h-9 rounded-lg">
+                                <Link to="/contractors/$slug" params={{ slug: m.contractor.slug }}>
+                                  View profile
+                                </Link>
+                              </Button>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </section>
 
                 <div className="mt-12 flex flex-wrap gap-3">
