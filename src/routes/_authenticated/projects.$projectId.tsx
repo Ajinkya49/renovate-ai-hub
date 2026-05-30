@@ -23,9 +23,14 @@ function ProjectDetail() {
   const { projectId } = Route.useParams();
   const navigate = useNavigate();
   const fetchProject = useServerFn(getProjectWithEstimate);
+  const fetchMatches = useServerFn(listProjectMatches);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => fetchProject({ data: { projectId } }),
+  });
+  const { data: matches, refetch: refetchMatches } = useQuery({
+    queryKey: ["project-matches", projectId],
+    queryFn: () => fetchMatches({ data: { projectId } }),
   });
 
   return (
