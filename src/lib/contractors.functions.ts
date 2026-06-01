@@ -341,3 +341,88 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+const ReviewEligibilityInput = z.object({ contractorId: z.string().uuid() });
+export const getReviewEligibility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => ReviewEligibilityInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: existing } = await supabaseAdmin
+      .from("contractor_reviews")
+      .select("id, rating, body")
+      .eq("contractor_id", data.contractorId)
+      .eq("reviewer_id", userId)
+      .maybeSingle();
+    const { data: leads } = await supabaseAdmin
+      .from("contractor_leads")
+      .select("id")
+      .eq("contractor_id", data.contractorId)
+      .eq("homeowner_id", userId)
+      .limit(1);
+    return {
+      canReview: (leads ?? []).length > 0,
+      existing: existing
+        ? { id: existing.id, rating: existing.rating, body: existing.body }
+        : null,
+    };
+  });
+
+const SubmitReviewInput = z.object({
+  contractorId: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  body: z.string().max(2000).optional().or(z.literal("")),
+});
+export const submitReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i: unknown) => SubmitReviewInput.parse(i))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    // Eligibility: must have at least one lead with this contractor.
+    const { data: leads } = await supabaseAdmin
+      .from("contractor_leads")
+      .select("id")
+      .eq("contractor_id", data.contractorId)
+      .eq("homeowner_id", userId)
+      .limit(1);
+    if (!leads || leads.length === 0) {
+      throw new Error("You can only review contractors you've been matched with.");
+    }
+
+    const { data: existing } = await supabaseAdmin
+      .from("contractor_reviews")
+      .select("id")
+      .eq("contractor_id", data.contractorId)
+      .eq("reviewer_id", userId)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabaseAdmin
+        .from("contractor_reviews")
+        .update({ rating: data.rating, body: data.body || null })
+        .eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabaseAdmin.from("contractor_reviews").insert({
+        contractor_id: data.contractorId,
+        reviewer_id: userId,
+        rating: data.rating,
+        body: data.body || null,
+      });
+      if (error) throw new Error(error.message);
+    }
+
+    // Recompute aggregate rating.
+    const { data: all } = await supabaseAdmin
+      .from("contractor_reviews")
+      .select("rating")
+      .eq("contractor_id", data.contractorId);
+    const ratings = (all ?? []).map((r) => Number(r.rating));
+    const avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+    await supabaseAdmin
+      .from("contractors")
+      .update({ rating: Number(avg.toFixed(2)), review_count: ratings.length })
+      .eq("id", data.contractorId);
+
+    return { ok: true };
+  });

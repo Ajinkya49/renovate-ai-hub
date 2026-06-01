@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { NotificationsBell } from "@/components/site/NotificationsBell";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -21,6 +22,7 @@ export function Header() {
             <>
               <Button asChild variant="ghost" size="sm"><Link to="/dashboard">Dashboard</Link></Button>
               <Button asChild variant="ghost" size="sm"><Link to="/marketplace">Marketplace</Link></Button>
+              <NotificationsBell />
               <Button onClick={() => signOut()} size="sm" variant="outline">Sign out</Button>
             </>
           ) : (

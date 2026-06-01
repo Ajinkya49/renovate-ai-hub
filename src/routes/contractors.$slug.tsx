@@ -3,6 +3,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
 import { getContractorBySlug } from "@/lib/contractors.functions";
+import { WriteReview } from "@/components/site/WriteReview";
 import { Shield, Star, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/contractors/$slug")({
@@ -103,6 +104,7 @@ function ContractorProfile() {
             </div>
           </section>
         )}
+        <WriteReview contractorId={c.id} contractorSlug={c.slug} />
       </main>
       <Footer />
     </div>
