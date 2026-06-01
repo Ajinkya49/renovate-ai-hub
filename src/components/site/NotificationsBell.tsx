@@ -1,7 +1,7 @@
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,14 +73,14 @@ export function NotificationsBell() {
                 }
               };
               return n.link ? (
-                <Link
+                <a
                   key={n.id}
-                  to={n.link}
+                  href={n.link}
                   onClick={onClick}
                   className="block px-3 py-3 border-b border-border last:border-b-0 hover:bg-accent transition-colors"
                 >
                   {content}
-                </Link>
+                </a>
               ) : (
                 <button
                   key={n.id}
