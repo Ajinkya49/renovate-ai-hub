@@ -1,5 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Camera, Sparkles, Hammer, Shield, Clock, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Camera,
+  Sparkles,
+  Hammer,
+  Shield,
+  Clock,
+  Wallet,
+  Plus,
+  Check,
+  PlayCircle,
+  Lock,
+  Star,
+  TrendingUp,
+  Users,
+  ShieldCheck,
+  BadgeCheck,
+  ChevronRight,
+  Box,
+  Layers,
+  Lightbulb,
+  HardHat,
+} from "lucide-react";
 import heroImage from "@/assets/hero-kitchen.jpg";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -43,11 +65,17 @@ function Landing() {
                 <Button asChild size="lg" className="bg-ink text-background hover:bg-ink/90 h-12 px-6 rounded-xl text-base">
                   <Link to="/signup">Get my estimate <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
                 </Button>
-                <Button asChild variant="ghost" size="lg" className="h-12 px-5 rounded-xl text-base">
-                  <Link to="/how-it-works">How it works</Link>
+                <Button asChild variant="outline" size="lg" className="h-12 px-5 rounded-xl text-base gap-2">
+                  <Link to="/how-it-works"><PlayCircle className="h-4 w-4" /> See how it works</Link>
                 </Button>
               </div>
-              <p className="mt-6 text-xs text-muted-foreground">Free for homeowners · No credit card · ~90 seconds</p>
+              <div className="mt-6 inline-flex items-center gap-4 rounded-xl bg-surface border border-border px-4 py-2.5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5"><Lock className="h-3 w-3" /> Free for homeowners</span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                <span>No credit card</span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                <span>~90 seconds</span>
+              </div>
             </div>
             <div className="lg:col-span-5 animate-fade-up [animation-delay:120ms]">
               <div className="relative">
@@ -61,35 +89,178 @@ function Landing() {
                     className="w-full h-auto object-cover"
                   />
                 </div>
+
+                {/* Left-side step cards */}
+                <div className="absolute left-[-28px] top-6 hidden md:flex flex-col gap-2 w-[260px]">
+                  <div className="rounded-2xl bg-surface-elevated border border-border shadow-card p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-copper/10 text-copper">
+                        <Camera className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-muted-foreground">1</div>
+                        <div className="text-sm font-semibold text-ink leading-tight">Upload photos</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[11px] text-muted-foreground">2–5 photos</div>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <div className="h-8 w-8 rounded-md bg-muted overflow-hidden">
+                        <img src={heroImage} alt="" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="h-8 w-8 rounded-md bg-muted overflow-hidden">
+                        <img src={heroImage} alt="" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="h-8 w-8 rounded-md border border-dashed border-border grid place-items-center text-muted-foreground">
+                        <Plus className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pl-3 text-copper/60 text-sm leading-none">↓</div>
+
+                  <div className="rounded-2xl bg-surface-elevated border border-border shadow-card p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-copper/10 text-copper">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-muted-foreground">2</div>
+                        <div className="text-sm font-semibold text-ink leading-tight">AI analysis</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[11px] text-muted-foreground">Detecting scope & materials…</div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-copper/40 via-copper to-copper" />
+                      </div>
+                      <div className="text-[10px] tabular-nums text-copper font-medium">92%</div>
+                    </div>
+                  </div>
+
+                  <div className="pl-3 text-copper/60 text-sm leading-none">↓</div>
+
+                  <div className="rounded-2xl bg-surface-elevated border border-border shadow-card p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                        <Check className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-[10px] text-muted-foreground">3</div>
+                        <div className="text-sm font-semibold text-ink leading-tight">Instant estimate</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[11px] text-muted-foreground">Pricing engine calculating…</div>
+                  </div>
+                </div>
+
                 {/* Floating estimate card */}
-                <div className="absolute -bottom-6 -left-6 hidden md:block rounded-2xl bg-surface-elevated border border-border shadow-card p-5 w-72">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Kitchen · Austin, TX</div>
+                <div className="absolute right-[-16px] bottom-[-24px] hidden md:block rounded-2xl bg-surface-elevated border border-border shadow-card p-5 w-[300px]">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Kitchen · Austin, TX</div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] px-2 py-0.5 font-medium">
+                      Highly accurate <Check className="h-3 w-3" />
+                    </span>
+                  </div>
                   <div className="mt-2 flex items-baseline gap-2">
                     <span className="font-display text-3xl text-ink">$42,300</span>
                     <span className="text-xs text-muted-foreground">expected</span>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">$34.8k — $51.2k · 6–9 weeks</div>
+                  <div className="mt-1 text-xs text-muted-foreground">$34.8k – $51.2k · 6–9 weeks</div>
                   <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
                     <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-copper/40 via-copper to-copper/80" />
                   </div>
+                  <ul className="mt-4 space-y-2 text-xs">
+                    {[
+                      { Icon: Box, label: "Kitchen cabinets", v: "$15,200" },
+                      { Icon: Layers, label: "Countertops", v: "$6,800" },
+                      { Icon: Layers, label: "Flooring", v: "$4,600" },
+                      { Icon: Lightbulb, label: "Lighting", v: "$2,200" },
+                      { Icon: HardHat, label: "Labor", v: "$13,500" },
+                    ].map((r) => (
+                      <li key={r.label} className="flex items-center justify-between text-ink">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <r.Icon className="h-3.5 w-3.5" />
+                          {r.label}
+                        </span>
+                        <span className="tabular-nums">{r.v}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="mt-4 w-full inline-flex items-center justify-between rounded-lg border border-border px-3 py-2 text-xs font-medium text-ink hover:bg-muted/40 transition-colors">
+                    View full estimate <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* TRUST STRIP */}
+        {/* TRUST STRIP — logos + ratings + vetted */}
         <section className="border-y border-border/60 bg-surface/60">
-          <div className="container-prose py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="container-prose py-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4 text-sm">
+            <div className="text-muted-foreground text-xs">Trusted by homeowners across the US</div>
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 fill-emerald-500 text-emerald-500" />
+              <span className="font-semibold text-ink">Trustpilot</span>
+              <span className="flex items-center gap-0.5 text-amber-500">
+                {[0,1,2,3,4].map((i) => <Star key={i} className="h-3 w-3 fill-current" />)}
+              </span>
+              <span className="text-ink font-medium tabular-nums">4.8</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-base">
+                <span style={{color:"#4285F4"}}>G</span>
+                <span style={{color:"#EA4335"}}>o</span>
+                <span style={{color:"#FBBC05"}}>o</span>
+                <span style={{color:"#4285F4"}}>g</span>
+                <span style={{color:"#34A853"}}>l</span>
+                <span style={{color:"#EA4335"}}>e</span>
+              </span>
+              <span className="flex items-center gap-0.5 text-amber-500">
+                {[0,1,2,3,4].map((i) => <Star key={i} className="h-3 w-3 fill-current" />)}
+              </span>
+              <span className="text-ink font-medium tabular-nums">4.9</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold italic" style={{color:"#EE3124"}}>Angi</span>
+              <span className="flex items-center gap-0.5 text-amber-500">
+                {[0,1,2,3,4].map((i) => <Star key={i} className="h-3 w-3 fill-current" />)}
+              </span>
+              <span className="text-ink font-medium tabular-nums">4.7</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div>
+                <div className="text-ink font-semibold text-sm">Vetted contractors</div>
+                <div className="text-[11px] text-muted-foreground">Background checked · Licensed · Insured</div>
+              </div>
+              <div className="flex items-center">
+                <div className="flex -space-x-2">
+                  {["bg-copper/70","bg-ink/70","bg-emerald-500/70"].map((c,i) => (
+                    <div key={i} className={`h-7 w-7 rounded-full border-2 border-background ${c}`} />
+                  ))}
+                </div>
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] text-ink">+1,800</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* STATS WITH ICONS */}
+        <section className="bg-surface/30">
+          <div className="container-prose py-14 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { k: "12,400+", v: "Estimates generated" },
-              { k: "1,800+", v: "Vetted contractors" },
-              { k: "92%", v: "Within ±15% of final" },
-              { k: "< 90s", v: "Median time to estimate" },
+              { Icon: TrendingUp, color: "text-copper bg-copper/10", k: "12,400+", v: "Estimates generated", sub: "Transparent. Accurate. Fast." },
+              { Icon: Users, color: "text-emerald-600 bg-emerald-500/10", k: "1,800+", v: "Vetted contractors", sub: "Quality pros you can trust." },
+              { Icon: ShieldCheck, color: "text-indigo-600 bg-indigo-500/10", k: "92%", v: "Within ±15% of final", sub: "Industry-leading accuracy." },
+              { Icon: BadgeCheck, color: "text-amber-600 bg-amber-500/10", k: "< 90s", v: "Median time to estimate", sub: "From photos to numbers." },
             ].map((s) => (
-              <div key={s.v}>
-                <div className="font-display text-2xl md:text-3xl text-ink">{s.k}</div>
-                <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">{s.v}</div>
+              <div key={s.v} className="flex flex-col items-center">
+                <div className={`grid h-10 w-10 place-items-center rounded-full ${s.color}`}>
+                  <s.Icon className="h-5 w-5" />
+                </div>
+                <div className="mt-4 font-display text-3xl md:text-4xl text-ink">{s.k}</div>
+                <div className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">{s.v}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{s.sub}</div>
               </div>
             ))}
           </div>
