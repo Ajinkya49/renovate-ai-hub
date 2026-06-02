@@ -65,11 +65,17 @@ function Landing() {
                 <Button asChild size="lg" className="bg-ink text-background hover:bg-ink/90 h-12 px-6 rounded-xl text-base">
                   <Link to="/signup">Get my estimate <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
                 </Button>
-                <Button asChild variant="ghost" size="lg" className="h-12 px-5 rounded-xl text-base">
-                  <Link to="/how-it-works">How it works</Link>
+                <Button asChild variant="outline" size="lg" className="h-12 px-5 rounded-xl text-base gap-2">
+                  <Link to="/how-it-works"><PlayCircle className="h-4 w-4" /> See how it works</Link>
                 </Button>
               </div>
-              <p className="mt-6 text-xs text-muted-foreground">Free for homeowners · No credit card · ~90 seconds</p>
+              <div className="mt-6 inline-flex items-center gap-4 rounded-xl bg-surface border border-border px-4 py-2.5 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5"><Lock className="h-3 w-3" /> Free for homeowners</span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                <span>No credit card</span>
+                <span className="h-1 w-1 rounded-full bg-muted-foreground/40" />
+                <span>~90 seconds</span>
+              </div>
             </div>
             <div className="lg:col-span-5 animate-fade-up [animation-delay:120ms]">
               <div className="relative">
