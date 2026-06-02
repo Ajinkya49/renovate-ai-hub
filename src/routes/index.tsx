@@ -1,5 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Camera, Sparkles, Hammer, Shield, Clock, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Camera,
+  Sparkles,
+  Hammer,
+  Shield,
+  Clock,
+  Wallet,
+  Plus,
+  Check,
+  PlayCircle,
+  Lock,
+  Star,
+  TrendingUp,
+  Users,
+  ShieldCheck,
+  BadgeCheck,
+  ChevronRight,
+  Box,
+  Layers,
+  Lightbulb,
+  HardHat,
+} from "lucide-react";
 import heroImage from "@/assets/hero-kitchen.jpg";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
