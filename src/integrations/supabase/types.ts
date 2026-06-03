@@ -61,6 +61,33 @@ export type Database = {
           },
         ]
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          properties: Json
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          properties?: Json
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          properties?: Json
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -91,6 +118,57 @@ export type Database = {
           metadata?: Json
           resource_id?: string | null
           resource_type?: string | null
+        }
+        Relationships: []
+      }
+      contractor_documents: {
+        Row: {
+          bytes: number | null
+          contractor_id: string
+          created_at: string
+          doc_type: Database["public"]["Enums"]["document_type"]
+          expires_at: string | null
+          file_name: string | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_bucket: string
+          storage_path: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          bytes?: number | null
+          contractor_id: string
+          created_at?: string
+          doc_type: Database["public"]["Enums"]["document_type"]
+          expires_at?: string | null
+          file_name?: string | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_bucket: string
+          storage_path: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          bytes?: number | null
+          contractor_id?: string
+          created_at?: string
+          doc_type?: Database["public"]["Enums"]["document_type"]
+          expires_at?: string | null
+          file_name?: string | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_bucket?: string
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string
         }
         Relationships: []
       }
@@ -189,6 +267,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contractor_verifications: {
+        Row: {
+          contractor_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          updated_at: string
+        }
+        Insert: {
+          contractor_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+        }
+        Update: {
+          contractor_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+        }
+        Relationships: []
       }
       contractors: {
         Row: {
@@ -350,6 +464,69 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          key: string
+          metadata: Json
+          rollout_percent: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          key: string
+          metadata?: Json
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          key?: string
+          metadata?: Json
+          rollout_percent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lead_credits: {
+        Row: {
+          balance: number
+          contractor_id: string
+          created_at: string
+          id: string
+          lifetime_purchased: number
+          lifetime_spent: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          contractor_id: string
+          created_at?: string
+          id?: string
+          lifetime_purchased?: number
+          lifetime_spent?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          contractor_id?: string
+          created_at?: string
+          id?: string
+          lifetime_purchased?: number
+          lifetime_spent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_events: {
         Row: {
           actor_id: string | null
@@ -414,6 +591,57 @@ export type Database = {
           link?: string | null
           read_at?: string | null
           title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          contractor_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          lead_id: string | null
+          metadata: Json
+          provider: string | null
+          provider_payment_id: string | null
+          purpose: Database["public"]["Enums"]["payment_purpose"]
+          status: Database["public"]["Enums"]["payment_status"]
+          subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          contractor_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          provider?: string | null
+          provider_payment_id?: string | null
+          purpose: Database["public"]["Enums"]["payment_purpose"]
+          status?: Database["public"]["Enums"]["payment_status"]
+          subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          contractor_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          provider?: string | null
+          provider_payment_id?: string | null
+          purpose?: Database["public"]["Enums"]["payment_purpose"]
+          status?: Database["public"]["Enums"]["payment_status"]
+          subscription_id?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -537,6 +765,54 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          contractor_id: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          metadata: Json
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          provider: string | null
+          provider_subscription_id: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          contractor_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          provider?: string | null
+          provider_subscription_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          contractor_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          metadata?: Json
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          provider?: string | null
+          provider_subscription_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -573,6 +849,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "contractor" | "homeowner"
+      document_status: "pending" | "approved" | "rejected" | "expired"
+      document_type: "license" | "insurance" | "w9" | "id" | "gallery" | "other"
       lead_status:
         | "new"
         | "viewed"
@@ -582,6 +860,12 @@ export type Database = {
         | "lost"
         | "expired"
       notification_channel: "in_app" | "email" | "sms"
+      payment_purpose:
+        | "lead_purchase"
+        | "subscription"
+        | "credit_topup"
+        | "refund"
+      payment_status: "pending" | "succeeded" | "failed" | "refunded"
       project_status:
         | "draft"
         | "analyzing"
@@ -598,6 +882,14 @@ export type Database = {
         | "whole_home"
         | "exterior"
         | "other"
+      subscription_plan: "free" | "starter" | "pro" | "enterprise"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "incomplete"
+      verification_status: "pending" | "approved" | "rejected" | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -726,6 +1018,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "contractor", "homeowner"],
+      document_status: ["pending", "approved", "rejected", "expired"],
+      document_type: ["license", "insurance", "w9", "id", "gallery", "other"],
       lead_status: [
         "new",
         "viewed",
@@ -736,6 +1030,13 @@ export const Constants = {
         "expired",
       ],
       notification_channel: ["in_app", "email", "sms"],
+      payment_purpose: [
+        "lead_purchase",
+        "subscription",
+        "credit_topup",
+        "refund",
+      ],
+      payment_status: ["pending", "succeeded", "failed", "refunded"],
       project_status: [
         "draft",
         "analyzing",
@@ -754,6 +1055,15 @@ export const Constants = {
         "exterior",
         "other",
       ],
+      subscription_plan: ["free", "starter", "pro", "enterprise"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "incomplete",
+      ],
+      verification_status: ["pending", "approved", "rejected", "suspended"],
     },
   },
 } as const
