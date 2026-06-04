@@ -218,18 +218,10 @@ export function computeEstimate(input: PricingInput): PricingResult {
   };
 }
 
-// USD → INR conversion rate used to display estimates in Indian Rupees.
-// Base pricing tables remain in USD cents internally; we convert at the edge.
-export const USD_TO_INR = 83;
-
-export function formatINR(usdCents: number): string {
-  const rupees = (usdCents / 100) * USD_TO_INR;
-  return new Intl.NumberFormat("en-IN", {
+export function formatUSD(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "INR",
+    currency: "USD",
     maximumFractionDigits: 0,
-  }).format(rupees);
+  }).format(cents / 100);
 }
-
-// Backwards-compatible alias — all call sites now render INR.
-export const formatUSD = formatINR;
