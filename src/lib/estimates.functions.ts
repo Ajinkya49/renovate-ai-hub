@@ -141,46 +141,56 @@ export const generateEstimate = createServerFn({ method: "POST" })
     const model = gateway("google/gemini-2.5-flash");
 
     const t0 = Date.now();
-    const { output } = await generateText({
-      model,
-      output: Output.object({ schema: VisionSchema }),
-      messages: [
-        {
-          role: "system",
-          content: [
-            "You are RenovationOS AI — an expert renovation estimator for India.",
-            "Analyze the uploaded room image(s) and generate a realistic renovation scope priced in Indian Rupees (INR).",
-            "Detect: room type, estimated size (sqft), flooring type & condition, wall/paint/ceiling condition,",
-            "cabinetry & countertop condition, lighting, plumbing & electrical fixtures, water damage, demolition needs, and renovation complexity.",
-            "Be conservative and realistic. Base the scope ONLY on what is clearly visible. Do NOT hallucinate or invent damage.",
-            "Categories MUST come from the allowed enum. Units: sqft, lf, ea, hr, lot.",
-            "Complexity: low = cosmetic refresh (paint, minor fixtures); medium = mid-grade remodel with some plumbing/electrical;",
-            "high = full gut, layout changes, structural or extensive systems work.",
-            "India pricing reference (INR): Painting ₹15–50/sqft, Flooring ₹80–300/sqft (premium ₹300–800),",
-            "Bathroom reno ₹80k–8L, Kitchen reno ₹1.5L–15L, Electrical upgrade ₹15k–1L, Plumbing upgrade ₹20k–2L,",
-            "False ceiling ₹90–220/sqft, Cabinet replacement ₹50k–5L, Countertop ₹15k–2L.",
-            "Never guarantee pricing — these are estimates only. Always reflect visible conditions in the scope.",
-          ].join(" "),
-        },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: `Room type: ${project.room_type}. Location: ${project.zip_code ?? "India (unspecified)"}.` },
-            ...imageParts,
-          ],
-        },
-      ],
-    });
+    let parsed: z.infer<typeof VisionSchema>;
+    try {
+      const { output } = await generateText({
+        model,
+        output: Output.object({ schema: VisionSchema }),
+        messages: [
+          {
+            role: "system",
+            content: [
+              "You are RenovationOS AI — an expert renovation estimator for India.",
+              "Analyze the uploaded room image(s) and produce a structured renovation scope.",
+              "Base the scope ONLY on what is clearly visible. Be conservative. Do NOT hallucinate.",
+              "Categories MUST come from: demolition, plumbing, electrical, cabinetry, countertops, flooring, tile, drywall, paint, fixtures, appliances, windows, hvac, permits, labor_general.",
+              "Units MUST be one of: sqft, lf, ea, hr, lot.",
+              "Complexity is one of: low, medium, high.",
+              "Return ONLY the structured object — no prose, no markdown.",
+            ].join(" "),
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: `Room type: ${project.room_type}. Location: ${project.zip_code ?? "India"}.` },
+              ...imageParts,
+            ],
+          },
+        ],
+      });
+      parsed = output;
+    } catch (err) {
+      // Model returned text not matching schema (common with vision models).
+      // Fall back to a conservative default scope so the user still gets an estimate.
+      console.error("AI vision schema failure, using fallback scope:", err);
+      parsed = {
+        detectedObjects: [],
+        estimatedSquareFeet: undefined,
+        conditionNotes: "AI analysis unavailable — generated baseline estimate from room type.",
+        complexity: "medium",
+        scope: [],
+      };
+    }
     const latencyMs = Date.now() - t0;
-    const normalizedScope = normalizeScope(output.scope);
+    const normalizedScope = normalizeScope(parsed.scope);
 
     // 5. Persist AI analysis.
     await supabase.from("ai_analysis").insert({
       project_id: project.id,
       model: "google/gemini-2.5-flash",
-      detected_objects: output.detectedObjects,
+      detected_objects: parsed.detectedObjects,
       scope: normalizedScope,
-      complexity: output.complexity,
+      complexity: parsed.complexity,
       confidence: 0.75,
       latency_ms: latencyMs,
     });
@@ -193,9 +203,9 @@ export const generateEstimate = createServerFn({ method: "POST" })
       roomType,
       zipCode: project.zip_code,
       region: project.region,
-      complexity: output.complexity as Complexity,
+      complexity: parsed.complexity as Complexity,
       scope: normalizedScope as ScopeItem[],
-      squareFeet: output.estimatedSquareFeet,
+      squareFeet: parsed.estimatedSquareFeet,
     });
 
     // 7. Replace any prior estimate for this project, then insert new + line items.
