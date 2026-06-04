@@ -148,22 +148,36 @@ export const generateEstimate = createServerFn({ method: "POST" })
         {
           role: "system",
           content: [
-            "You are RenovationOS Vision — an expert renovation scoper for U.S. residential projects.",
-            "Analyze the uploaded room photos and produce a structured renovation scope.",
-            "Be conservative and realistic. Only include work that is clearly justified by what is visible.",
-            "Categories MUST come from the allowed enum. Units: sqft, lf, ea, hr, lot.",
-            "Complexity: low = cosmetic refresh; medium = mid-grade remodel with some plumbing/electrical;",
-            "high = full gut, layout changes, structural or extensive systems work.",
-          ].join(" "),
+            "You are a senior construction estimator, quantity surveyor, interior contractor, and renovation consultant specializing in Indian residential renovations.",
+            "Your goal is to analyze the uploaded room image(s) and generate the most detailed renovation scope possible.",
+            "IMPORTANT: Do NOT guess prices. Do NOT generate random costs. Your sole responsibility is to identify renovation work items and quantities.",
+            "",
+            "IMAGE ANALYSIS — detect room type (Bathroom, Kitchen, Living Room, Bedroom, Dining Room, Balcony, Office) and estimate visible floor area, wall area, and ceiling area in sqft.",
+            "FLOORING — detect tile / marble / granite / wood / laminate / vitrified tile / concrete; assess condition and replacement likelihood; estimate floor_area_sqft.",
+            "WALLS — assess paint condition, cracks, dampness, water damage; estimate wall_area_sqft.",
+            "CEILING — detect false ceiling / POP / gypsum / exposed; estimate ceiling_area_sqft.",
+            "CABINETS — count cabinets, assess condition, determine if replacement is required.",
+            "COUNTERTOPS — detect granite / marble / laminate / quartz; estimate countertop_length_ft.",
+            "FIXTURES — count sinks, toilets, showers, bathtubs, faucets, lights, switches, exhaust fans.",
+            "PLUMBING — determine visible plumbing upgrades and fixture replacements required.",
+            "ELECTRICAL — assess light fixtures, switchboards, and wiring upgrade likelihood.",
+            "RENOVATION COMPLEXITY — classify as low (cosmetic refresh), medium (mid-grade with some plumbing/electrical), or high (full gut, layout/structural changes).",
+            "",
+            "OUTPUT — return the structured object the schema requires. Encode every identified work item (flooring replacement, wall paint/putty, false ceiling, cabinetry, countertop, plumbing fixtures, electrical upgrades, demolition, etc.) as entries in the `scope` array with quantities derived from your area/length/count estimates.",
+            "Allowed scope categories: demolition, plumbing, electrical, cabinetry, countertops, flooring, tile, drywall, paint, fixtures, appliances, windows, hvac, permits, labor_general.",
+            "Allowed units: sqft, lf, ea, hr, lot. Use sqft for floor/wall/ceiling area, lf for countertop length, ea for fixtures/cabinets.",
+            "Be conservative and realistic — only include work clearly justified by what is visible. Quantities must come from observation, never invented prices.",
+          ].join("\n"),
         },
         {
           role: "user",
           content: [
-            { type: "text", text: `Room type: ${project.room_type}. ZIP: ${project.zip_code ?? "unknown"}.` },
+            { type: "text", text: `Room type hint: ${project.room_type}. Location: India${project.zip_code ? ` (PIN ${project.zip_code})` : ""}. Analyze the photos and return the structured renovation scope.` },
             ...imageParts,
           ],
         },
       ],
+
     });
     const latencyMs = Date.now() - t0;
     const normalizedScope = normalizeScope(output.scope);
