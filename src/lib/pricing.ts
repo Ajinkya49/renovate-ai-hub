@@ -219,12 +219,10 @@ export function computeEstimate(input: PricingInput): PricingResult {
   };
 }
 
-// USD → INR conversion rate used to display estimates in Indian Rupees.
-// Base pricing tables remain in USD cents internally; we convert at the edge.
-export const USD_TO_INR = 83;
-
-export function formatINR(usdCents: number): string {
-  const rupees = (usdCents / 100) * USD_TO_INR;
+// Internal monetary unit is INR paise (1 INR = 100 paise).
+// Field names retain the *Cents suffix for backwards compatibility across the codebase.
+export function formatINR(paise: number): string {
+  const rupees = paise / 100;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
