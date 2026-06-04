@@ -218,10 +218,18 @@ export function computeEstimate(input: PricingInput): PricingResult {
   };
 }
 
-export function formatUSD(cents: number): string {
-  return new Intl.NumberFormat("en-US", {
+// USD → INR conversion rate used for display. Internal pricing math stays
+// in USD cents; we convert at the edge so all UI shows Indian Rupees.
+export const USD_TO_INR = 83;
+
+export function formatINR(cents: number): string {
+  const inr = (cents / 100) * USD_TO_INR;
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
     maximumFractionDigits: 0,
-  }).format(cents / 100);
+  }).format(inr);
 }
+
+// Back-compat alias — existing call sites import formatUSD but now render INR.
+export const formatUSD = formatINR;
