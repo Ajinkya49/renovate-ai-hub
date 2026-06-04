@@ -141,56 +141,40 @@ export const generateEstimate = createServerFn({ method: "POST" })
     const model = gateway("google/gemini-2.5-flash");
 
     const t0 = Date.now();
-    let parsed: z.infer<typeof VisionSchema>;
-    try {
-      const { output } = await generateText({
-        model,
-        output: Output.object({ schema: VisionSchema }),
-        messages: [
-          {
-            role: "system",
-            content: [
-              "You are RenovationOS AI — an expert renovation estimator for India.",
-              "Analyze the uploaded room image(s) and produce a structured renovation scope.",
-              "Base the scope ONLY on what is clearly visible. Be conservative. Do NOT hallucinate.",
-              "Categories MUST come from: demolition, plumbing, electrical, cabinetry, countertops, flooring, tile, drywall, paint, fixtures, appliances, windows, hvac, permits, labor_general.",
-              "Units MUST be one of: sqft, lf, ea, hr, lot.",
-              "Complexity is one of: low, medium, high.",
-              "Return ONLY the structured object — no prose, no markdown.",
-            ].join(" "),
-          },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: `Room type: ${project.room_type}. Location: ${project.zip_code ?? "India"}.` },
-              ...imageParts,
-            ],
-          },
-        ],
-      });
-      parsed = output;
-    } catch (err) {
-      // Model returned text not matching schema (common with vision models).
-      // Fall back to a conservative default scope so the user still gets an estimate.
-      console.error("AI vision schema failure, using fallback scope:", err);
-      parsed = {
-        detectedObjects: [],
-        estimatedSquareFeet: undefined,
-        conditionNotes: "AI analysis unavailable — generated baseline estimate from room type.",
-        complexity: "medium",
-        scope: [],
-      };
-    }
+    const { output } = await generateText({
+      model,
+      output: Output.object({ schema: VisionSchema }),
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You are RenovationOS Vision — an expert renovation scoper for U.S. residential projects.",
+            "Analyze the uploaded room photos and produce a structured renovation scope.",
+            "Be conservative and realistic. Only include work that is clearly justified by what is visible.",
+            "Categories MUST come from the allowed enum. Units: sqft, lf, ea, hr, lot.",
+            "Complexity: low = cosmetic refresh; medium = mid-grade remodel with some plumbing/electrical;",
+            "high = full gut, layout changes, structural or extensive systems work.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: `Room type: ${project.room_type}. ZIP: ${project.zip_code ?? "unknown"}.` },
+            ...imageParts,
+          ],
+        },
+      ],
+    });
     const latencyMs = Date.now() - t0;
-    const normalizedScope = normalizeScope(parsed.scope);
+    const normalizedScope = normalizeScope(output.scope);
 
     // 5. Persist AI analysis.
     await supabase.from("ai_analysis").insert({
       project_id: project.id,
       model: "google/gemini-2.5-flash",
-      detected_objects: parsed.detectedObjects,
+      detected_objects: output.detectedObjects,
       scope: normalizedScope,
-      complexity: parsed.complexity,
+      complexity: output.complexity,
       confidence: 0.75,
       latency_ms: latencyMs,
     });
@@ -203,9 +187,9 @@ export const generateEstimate = createServerFn({ method: "POST" })
       roomType,
       zipCode: project.zip_code,
       region: project.region,
-      complexity: parsed.complexity as Complexity,
+      complexity: output.complexity as Complexity,
       scope: normalizedScope as ScopeItem[],
-      squareFeet: parsed.estimatedSquareFeet,
+      squareFeet: output.estimatedSquareFeet,
     });
 
     // 7. Replace any prior estimate for this project, then insert new + line items.
