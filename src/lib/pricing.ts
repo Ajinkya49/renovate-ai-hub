@@ -71,23 +71,24 @@ export type PricingResult = {
   region: string;
 };
 
-// Base unit costs in USD cents (national median). Conservative.
+// Base unit costs in INR paise (1 INR = 100 paise). India median pricing.
+// Sourced from RenovationOS India pricing reference. Conservative midpoints.
 const BASE_UNIT_COSTS: Record<ScopeItem["category"], number> = {
-  demolition: 350, // per sqft
-  plumbing: 95000, // per fixture/ea
-  electrical: 28000, // per ea (outlet/circuit avg)
-  cabinetry: 35000, // per linear foot
-  countertops: 8500, // per sqft
-  flooring: 1200, // per sqft installed
-  tile: 1800, // per sqft installed
-  drywall: 450, // per sqft
-  paint: 350, // per sqft
-  fixtures: 65000, // per ea
-  appliances: 180000, // per ea
-  windows: 95000, // per ea
-  hvac: 450000, // per lot
-  permits: 150000, // per lot
-  labor_general: 8500, // per hour
+  demolition: 5000, // ₹50/sqft
+  plumbing: 5000000, // ₹50,000 per fixture/ea
+  electrical: 500000, // ₹5,000 per ea (outlet/point avg)
+  cabinetry: 1500000, // ₹15,000 per linear foot
+  countertops: 150000, // ₹1,500 per sqft
+  flooring: 20000, // ₹200 per sqft installed
+  tile: 25000, // ₹250 per sqft installed
+  drywall: 8000, // ₹80 per sqft (false ceiling / partition)
+  paint: 3000, // ₹30 per sqft
+  fixtures: 800000, // ₹8,000 per ea
+  appliances: 4000000, // ₹40,000 per ea
+  windows: 1500000, // ₹15,000 per ea
+  hvac: 8000000, // ₹80,000 per lot
+  permits: 1000000, // ₹10,000 per lot
+  labor_general: 40000, // ₹400 per hour
 };
 
 // 3-digit ZIP → regional cost multiplier (cost-of-living adjusted).
@@ -218,12 +219,10 @@ export function computeEstimate(input: PricingInput): PricingResult {
   };
 }
 
-// USD → INR conversion rate used to display estimates in Indian Rupees.
-// Base pricing tables remain in USD cents internally; we convert at the edge.
-export const USD_TO_INR = 83;
-
-export function formatINR(usdCents: number): string {
-  const rupees = (usdCents / 100) * USD_TO_INR;
+// Internal monetary unit is INR paise (1 INR = 100 paise).
+// Field names retain the *Cents suffix for backwards compatibility across the codebase.
+export function formatINR(paise: number): string {
+  const rupees = paise / 100;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
