@@ -183,16 +183,14 @@ export const generateEstimate = createServerFn({ method: "POST" })
     }
     const latencyMs = Date.now() - t0;
     const normalizedScope = normalizeScope(parsed.scope);
-    const latencyMs = Date.now() - t0;
-    const normalizedScope = normalizeScope(output.scope);
 
     // 5. Persist AI analysis.
     await supabase.from("ai_analysis").insert({
       project_id: project.id,
       model: "google/gemini-2.5-flash",
-      detected_objects: output.detectedObjects,
+      detected_objects: parsed.detectedObjects,
       scope: normalizedScope,
-      complexity: output.complexity,
+      complexity: parsed.complexity,
       confidence: 0.75,
       latency_ms: latencyMs,
     });
@@ -205,9 +203,9 @@ export const generateEstimate = createServerFn({ method: "POST" })
       roomType,
       zipCode: project.zip_code,
       region: project.region,
-      complexity: output.complexity as Complexity,
+      complexity: parsed.complexity as Complexity,
       scope: normalizedScope as ScopeItem[],
-      squareFeet: output.estimatedSquareFeet,
+      squareFeet: parsed.estimatedSquareFeet,
     });
 
     // 7. Replace any prior estimate for this project, then insert new + line items.
