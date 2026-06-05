@@ -36,49 +36,104 @@ const SCOPE_CATEGORIES = [
 
 const UNITS = ["sqft", "lf", "ea", "hr", "lot"] as const;
 
-// Lenient schema — Gemini often returns slightly off-spec values (extra
-// categories, string numbers, missing fields). We accept loose input and
-// normalize after parsing rather than failing the whole generation.
+// Rich analysis schema matching the user-facing spec. The AI returns
+// observations + quantities only — no prices. We then deterministically
+// derive scope line items for the pricing engine.
+const AI_ROOM_TYPES = [
+  "Bathroom", "Kitchen", "Living Room", "Bedroom", "Dining Room", "Balcony", "Office", "Other",
+] as const;
+const FLOORING_TYPES = [
+  "tile", "marble", "granite", "wood", "laminate", "vitrified", "concrete", "unknown",
+] as const;
+const CONDITIONS = ["new", "good", "fair", "poor", "damaged", "unknown"] as const;
+const COUNTERTOP_TYPES = ["granite", "marble", "laminate", "quartz", "none", "unknown"] as const;
+
 const VisionSchema = z.object({
-  detectedObjects: z.array(z.string()).max(80).optional().default([]),
-  estimatedSquareFeet: z.coerce.number().min(1).max(20000).optional(),
-  conditionNotes: z.string().max(2000).optional().default(""),
-  complexity: z.enum(["low", "medium", "high"]).optional().default("medium"),
-  scope: z
-    .array(
-      z.object({
-        category: z.string(),
-        description: z.string().min(1).max(400),
-        quantity: z.coerce.number().min(0).max(100000).optional().default(1),
-        unit: z.string().optional().default("ea"),
-      }),
-    )
-    .optional()
-    .default([]),
+  room_type: z.enum(AI_ROOM_TYPES).optional().default("Other"),
+  floor_area_sqft: z.coerce.number().min(0).max(20000).optional().default(0),
+  wall_area_sqft: z.coerce.number().min(0).max(40000).optional().default(0),
+  ceiling_area_sqft: z.coerce.number().min(0).max(20000).optional().default(0),
+  flooring_type: z.enum(FLOORING_TYPES).optional().default("unknown"),
+  flooring_condition: z.enum(CONDITIONS).optional().default("unknown"),
+  paint_condition: z.enum(CONDITIONS).optional().default("unknown"),
+  water_damage_detected: z.coerce.boolean().optional().default(false),
+  cabinet_count: z.coerce.number().min(0).max(50).optional().default(0),
+  cabinet_condition: z.enum(CONDITIONS).optional().default("unknown"),
+  countertop_type: z.enum(COUNTERTOP_TYPES).optional().default("none"),
+  countertop_length_ft: z.coerce.number().min(0).max(200).optional().default(0),
+  fixtures: z.array(z.string()).max(40).optional().default([]),
+  electrical_upgrade_required: z.coerce.boolean().optional().default(false),
+  plumbing_upgrade_required: z.coerce.boolean().optional().default(false),
+  demolition_required: z.coerce.boolean().optional().default(false),
+  renovation_complexity: z.enum(["Low", "Medium", "High"]).optional().default("Medium"),
+  confidence_score: z.coerce.number().min(0).max(1).optional().default(0.6),
+  notes: z.string().max(1000).optional().default(""),
 });
 
-function normalizeScope(raw: z.infer<typeof VisionSchema>["scope"]) {
-  const allowedCats = new Set<string>(SCOPE_CATEGORIES);
-  const allowedUnits = new Set<string>(UNITS);
-  const normalized = raw.map((item) => {
-    const cat = (item.category || "").toLowerCase().replace(/\s+/g, "_");
-    const unit = (item.unit || "ea").toLowerCase();
-    return {
-      category: (allowedCats.has(cat) ? cat : "labor_general") as (typeof SCOPE_CATEGORIES)[number],
-      description: item.description.slice(0, 200),
-      quantity: Math.max(0.1, Math.min(10000, item.quantity || 1)),
-      unit: (allowedUnits.has(unit) ? unit : "ea") as (typeof UNITS)[number],
-    };
-  });
-  if (normalized.length === 0) {
-    normalized.push({
-      category: "labor_general",
-      description: "General renovation labor",
-      quantity: 40,
-      unit: "hr",
-    });
+type VisionOutput = z.infer<typeof VisionSchema>;
+type DerivedScope = {
+  category: (typeof SCOPE_CATEGORIES)[number];
+  description: string;
+  quantity: number;
+  unit: (typeof UNITS)[number];
+};
+
+/** Convert rich AI analysis into deterministic scope items for pricing. */
+function deriveScopeFromAnalysis(a: VisionOutput): DerivedScope[] {
+  const items: DerivedScope[] = [];
+  const floor = a.floor_area_sqft || 0;
+  const wall = a.wall_area_sqft || (floor > 0 ? Math.round(floor * 2.4) : 0);
+  const ceiling = a.ceiling_area_sqft || floor;
+
+  if (a.demolition_required && floor > 0) {
+    items.push({ category: "demolition", description: "Strip-out & debris removal", quantity: floor, unit: "sqft" });
   }
-  return normalized.slice(0, 20);
+  if (["poor", "damaged"].includes(a.flooring_condition) && floor > 0) {
+    const t = a.flooring_type === "unknown" ? "vitrified" : a.flooring_type;
+    items.push({ category: "flooring", description: `New ${t} flooring`, quantity: floor, unit: "sqft" });
+  }
+  if (wall > 0 && ["fair", "poor", "damaged"].includes(a.paint_condition)) {
+    items.push({ category: "paint", description: "Wall putty + 2-coat paint", quantity: wall, unit: "sqft" });
+  }
+  if (a.water_damage_detected) {
+    items.push({ category: "labor_general", description: "Waterproofing & damp treatment", quantity: 16, unit: "hr" });
+  }
+  if (/false ceiling|pop|gypsum/i.test(a.notes + " " + a.fixtures.join(" ")) && ceiling > 0) {
+    items.push({ category: "drywall", description: "False ceiling (POP/gypsum)", quantity: ceiling, unit: "sqft" });
+  }
+  if (a.cabinet_count > 0 && ["poor", "damaged"].includes(a.cabinet_condition)) {
+    items.push({ category: "cabinetry", description: "Modular cabinet replacement", quantity: a.cabinet_count, unit: "ea" });
+  }
+  if (a.countertop_length_ft > 0 && a.countertop_type !== "none" && a.countertop_type !== "unknown") {
+    items.push({ category: "countertops", description: `${a.countertop_type} countertop`, quantity: a.countertop_length_ft, unit: "lf" });
+  }
+  const plumbingFixtures = a.fixtures.filter((f) => /sink|toilet|shower|bath|faucet|tap/i.test(f)).length;
+  if (a.plumbing_upgrade_required || plumbingFixtures > 0) {
+    items.push({ category: "plumbing", description: "Fixture replacement & plumbing rework", quantity: Math.max(1, plumbingFixtures), unit: "ea" });
+  }
+  if (a.electrical_upgrade_required) {
+    items.push({ category: "electrical", description: "Wiring / switchboard upgrade", quantity: 1, unit: "lot" });
+  }
+  const electricalFixtures = a.fixtures.filter((f) => /light|lamp|switch|fan|exhaust/i.test(f)).length;
+  if (electricalFixtures > 0) {
+    items.push({ category: "electrical", description: "Light fixtures & switches", quantity: electricalFixtures, unit: "ea" });
+  }
+  if (items.length === 0) {
+    items.push({ category: "labor_general", description: "General renovation labor", quantity: 40, unit: "hr" });
+  }
+  return items.slice(0, 20);
+}
+
+function mapComplexity(c: VisionOutput["renovation_complexity"]): Complexity {
+  return c.toLowerCase() as Complexity;
+}
+function mapAiRoomType(c: VisionOutput["room_type"], hint: string): RoomType {
+  const m: Record<string, RoomType> = {
+    Bathroom: "bathroom", Kitchen: "kitchen", "Living Room": "living_room",
+    Bedroom: "bedroom", "Dining Room": "living_room", Balcony: "exterior",
+    Office: "other", Other: "other",
+  };
+  return m[c] ?? ((ROOM_TYPES as readonly string[]).includes(hint) ? (hint as RoomType) : "other");
 }
 
 const CreateEstimateInput = z.object({
