@@ -203,58 +203,59 @@ export const generateEstimate = createServerFn({ method: "POST" })
         {
           role: "system",
           content: [
-            "You are a senior construction estimator and interior contractor specializing in Indian residential renovations (kitchens, bathrooms, bedrooms, living rooms, balconies, offices).",
-            "Analyze the uploaded room photo(s) and identify renovation work items and quantities ONLY — never invent prices or costs.",
-            "Inspect: flooring (tile/marble/granite/wood/laminate/vitrified/concrete) & condition, walls (paint condition, cracks, dampness, water damage), ceiling (false ceiling / POP / gypsum / exposed), cabinets (count + condition), countertops (granite/marble/laminate/quartz + linear feet), fixtures (sink, toilet, shower, bathtub, faucets, lights, switches, exhaust fan), plumbing upgrade needs, electrical/wiring upgrade needs, demolition needs.",
+            "You are a senior construction estimator, quantity surveyor, interior contractor, and renovation consultant specializing in Indian residential renovations.",
+            "Analyze the uploaded room image and identify renovation work items and quantities ONLY. Do NOT guess prices. Do NOT generate random costs.",
             "",
-            "RETURN ONLY the structured object matching the provided schema. Do not return any other JSON shape. The schema fields are:",
-            "- detectedObjects: short string list of what you see (e.g. 'kitchen cabinets', 'granite countertop', 'CFL ceiling light').",
-            "- estimatedSquareFeet: rough floor area of the room.",
-            "- conditionNotes: 1–3 sentences summarizing flooring/walls/ceiling/water damage/overall condition.",
-            "- complexity: 'low' (cosmetic refresh), 'medium' (mid-grade with some plumbing/electrical), or 'high' (full gut / layout / structural).",
-            "- scope: array of renovation line items. Each item MUST have { category, description, quantity, unit }.",
-            "    category MUST be one of: demolition, plumbing, electrical, cabinetry, countertops, flooring, tile, drywall, paint, fixtures, appliances, windows, hvac, permits, labor_general.",
-            "    unit MUST be one of: sqft (areas), lf (countertop/linear), ea (fixtures/cabinets/lights), hr (labor), lot (one-time).",
-            "    Encode every observation as a scope item: flooring replacement → flooring (sqft), wall paint/putty → paint (sqft), false ceiling/POP → drywall (sqft), modular cabinets → cabinetry (lf or ea), countertop → countertops (lf), sink/faucet/toilet/shower → fixtures or plumbing (ea), lights/switches/wiring → electrical (ea or lot), demolition → demolition (sqft or lot).",
-            "Be conservative — only include items clearly justified by the photo. Quantities come from observation; never invent prices.",
+            "Detect room_type from: Bathroom, Kitchen, Living Room, Bedroom, Dining Room, Balcony, Office, Other.",
+            "Estimate floor_area_sqft, wall_area_sqft (≈ floor × 2.4 if not directly measurable), ceiling_area_sqft.",
+            "Flooring: detect type (tile/marble/granite/wood/laminate/vitrified/concrete/unknown) and condition (new/good/fair/poor/damaged/unknown).",
+            "Walls: assess paint_condition (new/good/fair/poor/damaged/unknown), set water_damage_detected true if you see cracks, dampness, peeling, or staining.",
+            "Ceiling: include 'false ceiling', 'POP', or 'gypsum' in notes/fixtures if visible; otherwise leave it out.",
+            "Cabinets: count visible cabinets and assess condition.",
+            "Countertops: detect type (granite/marble/laminate/quartz/none/unknown) and estimate countertop_length_ft.",
+            "Fixtures: list short labels for each visible fixture (e.g. 'sink', 'toilet', 'shower', 'bathtub', 'faucet', 'ceiling light', 'switchboard', 'exhaust fan').",
+            "Set plumbing_upgrade_required, electrical_upgrade_required, demolition_required based on visible condition.",
+            "renovation_complexity: Low (cosmetic refresh), Medium (mid-grade with some plumbing/electrical), High (full gut / layout / structural).",
+            "confidence_score: 0–1, how confident you are in this analysis.",
+            "notes: 1–2 short sentences summarizing what you see.",
+            "",
+            "Be conservative — only mark a category as 'poor' or 'damaged', or set a *_required flag, if the photo clearly shows it.",
+            "Return ONLY the structured object matching the provided schema.",
           ].join("\n"),
         },
         {
           role: "user",
           content: [
-            { type: "text", text: `Room type hint: ${project.room_type}. Location: India${project.zip_code ? ` (PIN ${project.zip_code})` : ""}. Return ONLY the schema object.` },
+            { type: "text", text: `Room type hint: ${project.room_type}. Location: India${project.zip_code ? ` (PIN ${project.zip_code})` : ""}.` },
             ...imageParts,
           ],
         },
       ],
-
-
     });
     const latencyMs = Date.now() - t0;
-    const normalizedScope = normalizeScope(output.scope);
+    const analysis = output;
+    const derivedScope = deriveScopeFromAnalysis(analysis);
 
     // 5. Persist AI analysis.
     await supabase.from("ai_analysis").insert({
       project_id: project.id,
       model: "google/gemini-2.5-flash",
-      detected_objects: output.detectedObjects,
-      scope: normalizedScope,
-      complexity: output.complexity,
-      confidence: 0.75,
+      detected_objects: analysis.fixtures,
+      scope: { analysis, derived: derivedScope },
+      complexity: mapComplexity(analysis.renovation_complexity),
+      confidence: analysis.confidence_score,
       latency_ms: latencyMs,
     });
 
     // 6. Compute deterministic estimate.
-    const roomType = (ROOM_TYPES as readonly string[]).includes(project.room_type)
-      ? (project.room_type as RoomType)
-      : ("other" as RoomType);
+    const roomType = mapAiRoomType(analysis.room_type, project.room_type);
     const result = computeEstimate({
       roomType,
       zipCode: project.zip_code,
       region: project.region,
-      complexity: output.complexity as Complexity,
-      scope: normalizedScope as ScopeItem[],
-      squareFeet: output.estimatedSquareFeet,
+      complexity: mapComplexity(analysis.renovation_complexity),
+      scope: derivedScope as ScopeItem[],
+      squareFeet: analysis.floor_area_sqft || undefined,
     });
 
     // 7. Replace any prior estimate for this project, then insert new + line items.
