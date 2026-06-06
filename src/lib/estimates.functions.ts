@@ -419,8 +419,16 @@ export const quickEstimate = createServerFn({ method: "POST" })
       .update({ status: "estimated" })
       .eq("id", project.id);
 
+    try {
+      const { matchContractorsForProject } = await import("@/lib/leads.functions");
+      await matchContractorsForProject(project.id);
+    } catch (e) {
+      console.error("[matchContractorsForProject] failed", e);
+    }
+
     return { projectId: project.id, estimateId: est.id };
   });
+
 
 const GetEstimateInput = z.object({ projectId: z.string().uuid() });
 
