@@ -296,8 +296,17 @@ export const generateEstimate = createServerFn({ method: "POST" })
       .update({ status: "estimated" })
       .eq("id", project.id);
 
+    // Auto-match contractors for this fresh estimate.
+    try {
+      const { matchContractorsForProject } = await import("@/lib/leads.functions");
+      await matchContractorsForProject(project.id);
+    } catch (e) {
+      console.error("[matchContractorsForProject] failed", e);
+    }
+
     return { estimateId: est.id, projectId: project.id };
   });
+
 
 const CreateProjectInput = z.object({
   title: z.string().min(1).max(120),
