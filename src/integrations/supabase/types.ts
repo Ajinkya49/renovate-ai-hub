@@ -176,37 +176,46 @@ export type Database = {
         Row: {
           contractor_id: string
           created_at: string
+          credit_cost: number
           estimate_id: string | null
           homeowner_id: string
           id: string
+          is_unlocked: boolean
           price_cents: number | null
           project_id: string
           score: number | null
           status: Database["public"]["Enums"]["lead_status"]
+          unlocked_at: string | null
           updated_at: string
         }
         Insert: {
           contractor_id: string
           created_at?: string
+          credit_cost?: number
           estimate_id?: string | null
           homeowner_id: string
           id?: string
+          is_unlocked?: boolean
           price_cents?: number | null
           project_id: string
           score?: number | null
           status?: Database["public"]["Enums"]["lead_status"]
+          unlocked_at?: string | null
           updated_at?: string
         }
         Update: {
           contractor_id?: string
           created_at?: string
+          credit_cost?: number
           estimate_id?: string | null
           homeowner_id?: string
           id?: string
+          is_unlocked?: boolean
           price_cents?: number | null
           project_id?: string
           score?: number | null
           status?: Database["public"]["Enums"]["lead_status"]
+          unlocked_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -562,6 +571,60 @@ export type Database = {
           },
         ]
       }
+      lead_purchases: {
+        Row: {
+          amount_cents: number | null
+          balance_after: number
+          contractor_id: string
+          created_at: string
+          credits_delta: number
+          id: string
+          kind: string
+          lead_id: string | null
+          note: string | null
+          package_key: string | null
+        }
+        Insert: {
+          amount_cents?: number | null
+          balance_after: number
+          contractor_id: string
+          created_at?: string
+          credits_delta: number
+          id?: string
+          kind: string
+          lead_id?: string | null
+          note?: string | null
+          package_key?: string | null
+        }
+        Update: {
+          amount_cents?: number | null
+          balance_after?: number
+          contractor_id?: string
+          created_at?: string
+          credits_delta?: number
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          note?: string | null
+          package_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_purchases_contractor_id_fkey"
+            columns: ["contractor_id"]
+            isOneToOne: false
+            referencedRelation: "contractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_purchases_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "contractor_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -839,12 +902,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_lead_credits: {
+        Args: {
+          _amount_cents: number
+          _contractor_id: string
+          _credits: number
+          _kind?: string
+          _package_key: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      unlock_lead_with_credits: {
+        Args: { _lead_id: string; _user_id: string }
+        Returns: Json
       }
     }
     Enums: {
