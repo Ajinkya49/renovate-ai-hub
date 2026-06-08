@@ -73,8 +73,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "RenovationOS — AI renovation estimates in minutes" },
       { name: "twitter:description", content: "Upload room photos, get instant AI-powered renovation estimates and matched local contractors." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/djAj8xRqrdWbL4c1IN5ZBgCSHC73/social-images/social-1780911665767-Screenshot_2026-06-08_151041.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/djAj8xRqrdWbL4c1IN5ZBgCSHC73/social-images/social-1780911665767-Screenshot_2026-06-08_151041.webp" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/djAj8xRqrdWbL4c1IN5ZBgCSHC73/social-images/social-1780912036982-ChatGPT_Image_Jun_8,_2026,_03_17_04_PM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/djAj8xRqrdWbL4c1IN5ZBgCSHC73/social-images/social-1780912036982-ChatGPT_Image_Jun_8,_2026,_03_17_04_PM.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
